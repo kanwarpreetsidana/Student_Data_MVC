@@ -1,0 +1,365 @@
+﻿
+@model WebApplication5.Models.S_Marks
+
+
+
+@*@model IEnumerable<WebApplication5.Models.MAdd>
+    @{
+        ViewBag.Title = "Index";
+    }*@
+
+
+
+@{
+    Layout = null;
+}
+
+<h2 style="text-align:center">Student Marks</h2>
+
+
+
+<!DOCTYPE html>
+
+<html>
+<head>
+    <meta name="viewport" content="width=device-width" />
+    <title>Add Student Marks</title>
+    <style type="text/css">
+        body {
+            font-family: Arial;
+            font-size: 10pt;
+        }
+    </style>
+
+    @Styles.Render("~/Content/bootstrap.css")
+    <script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
+
+</head>
+<body>
+
+    @using (Html.BeginForm("AddMrks", "Marks", FormMethod.Post, new { returnUrl = Request.Url.AbsoluteUri }))
+    {
+        @Html.AntiForgeryToken()
+
+        @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+
+
+        <div class="row" style="padding:5px">
+
+            <div class="col-md-2">
+                @Html.LabelFor(model => model.student_class)
+            </div>
+            <div class="col-md-3">
+                @Html.DropDownList("var1", (IEnumerable<SelectListItem>)ViewBag.Value, "Select Class", new { @class = "form-control" })
+            </div>
+
+        </div>
+
+        <div class="row" style="padding:5px">
+
+            <div class="col-md-2">
+                @Html.LabelFor(model => model.student_name)
+            </div>
+            <div class="col-md-3">
+                @Html.DropDownList("var2", (IEnumerable<SelectListItem>)ViewBag.Value, "Select Student Name", new { @class = "form-control" })
+            </div>
+
+        </div>
+
+
+
+        <div class="row" style="padding:5px">
+
+            <div class="col-md-2">
+                @Html.LabelFor(model => model.subject, htmlAttributes: new { @class = "control-label col-md-2" })
+            </div>
+            <div class="col-md-3">
+
+                @Html.DropDownList("subject_drop", new List<SelectListItem>
+            {
+                new SelectListItem{ Text="Hindi", Value = "Hindi" },
+                new SelectListItem{ Text="English", Value = "English" },
+                new SelectListItem{ Text="Science", Value = "Science" ,Selected=true },
+               }, new { @class = "form-control" })
+            </div>
+
+        </div>
+
+        <div class="row" style="padding:5px">
+
+            <div class="col-md-2">
+                @Html.LabelFor(model => model.marks, htmlAttributes: new { @class = "control-label col-md-2" })
+            </div>
+            <div class="col-md-3">
+                @Html.EditorFor(model => model.marks, new { htmlAttributes = new { @class = "form-control" } })
+                @Html.ValidationMessageFor(model => model.marks, "", new { @class = "text-danger" })
+            </div>
+        </div>
+
+
+
+        <div style="display:none">
+            @Html.LabelFor(model => model.id, htmlAttributes: new { @class = "control-label col-md-2" })
+            <div class="col-md-10">
+                @Html.EditorFor(model => model.id, new { htmlAttributes = new { @class = "form-control" } })
+
+            </div>
+        </div>
+
+        <div style="display:none">
+            @Html.LabelFor(model => model.student_id, htmlAttributes: new { @class = "control-label col-md-2" })
+            <div class="col-md-10">
+                @Html.EditorFor(model => model.student_id, new { htmlAttributes = new { @class = "form-control" } })
+
+            </div>
+        </div>
+
+
+        <div class="row" style="padding-left:75px">
+
+            <div class="col-md-2">
+                <input type="submit" value="Add Marks" class="btn btn-primary" id="btnsubmit" />
+            </div>
+
+            <div class="col-md-2">
+
+                <a href='@Url.Action("Index", "CAdd")'>Go to Student Page</a>
+            </div>
+
+        </div>
+
+    }
+
+
+    <div style="align-content:center;padding:20px">
+        <table id="tblCustomers" cellpadding="0" cellspacing="0" border="1" style="border-collapse:collapse" class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Id</th>
+                    <th>Student ID</th>
+                    <th>First Name</th>
+                    <th>Last Name</th>
+                    <th>Class</th>
+                    <th>Subject</th>
+                    <th>Marks</th>
+                    <th>Delete</th>
+                    <th>Edit</th>
+
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
+    <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js"></script>
+    <script type="text/javascript" src="https://cdn.datatables.net/1.10.20/js/jquery.dataTables.min.js"></script>
+
+    <script type="text/javascript" src="https://code.jquery.com/jquery-3.5.1.js"></script>
+    <script type="text/javascript" src="https://cdn.datatables.net/1.12.1/js/jquery.dataTables.min.js"></script>
+    <script type="text/javascript" src="https://cdn.datatables.net/searchbuilder/1.3.4/js/dataTables.searchBuilder.min.js"></script>
+    <script type="text/javascript" src="https://cdn.datatables.net/datetime/1.1.2/js/dataTables.dateTime.min.js"></script>
+
+    <link href="https://cdn.datatables.net/1.10.20/css/jquery.dataTables.css" rel="stylesheet" type="text/css" />
+    <script type="text/javascript">
+            $(function () {
+                $.ajax({
+                    type: "POST",
+                    url: "/Marks/StudentData",
+                    data: '{}',
+                    contentType: "application/json; charset=utf-8",
+                    dataType: "json",
+                    success: OnSuccess,
+                    failure: function (response) {
+                        alert(response.d);
+                    },
+                    error: function (response) {
+                        alert(response.d);
+                    }
+                });
+            });
+
+            var dataTable;
+            function OnSuccess(response) {
+
+
+                dataTable = $("#tblCustomers").DataTable(
+                    {
+                        bLengthChange: true,
+                        lengthMenu: [[5, 10, -1], [5, 10, "All"]],
+                        bFilter: true,
+                        bSort: true,
+                        bPaginate: true,
+                        data: response,
+                        dom: 'Qlfrtip',
+                        searchBuilder: {
+                            columns: [4,5]
+                        },
+
+                        columns: [{ 'data': 'id' },
+                         { 'data': 'student_id' },
+                        { 'data': 'first_name' },
+                            { 'data': 'last_name' },
+                            { 'data': 'student_class' },
+                            { 'data': 'subject'},
+                            { 'data': 'marks' },
+                            {
+                                data: null,
+                                render: function (data, type, row) {
+                                    return "<input type='button' id='btnDelete' value='Delete' data-id='" + data.id + "' />";
+                                }
+                            },
+                            {
+                                data: null,
+                                render: function (data, type, row) {
+                                    return "<input type='button' id='btnupdate' value='Edit' data-student_id='" + data.student_id + "' data-subject='" + data.subject + "' />";
+                                }
+                            }
+                        ]
+                    });
+            };
+
+            $('#tblCustomers tbody').on('click', '[id*=btnDelete]', function () {
+                if (confirm('Are you sure delete this record?')) {
+                    var customer = {};
+                    customer.CustomerId = $(this).attr('data-id');
+                    $.ajax({
+                        type: "POST",
+                        url: '@Url.Action("DeleteMarks","Marks")/' + customer.CustomerId,
+                        dataSrc: "",
+
+                        success: function (r) {
+
+                            swal("Great!", "Deleted Successfully!", "success");
+
+                            $(function () {
+                                $.ajax({
+                                    type: "POST",
+                                    url: "/Marks/StudentData",
+                                    data: '{}',
+                                    contentType: "application/json; charset=utf-8",
+                                    dataType: "json",
+                                    success: OnSuccess,
+                                    failure: function (response) {
+                                        alert(response.d);
+                                    },
+                                    error: function (response) {
+                                        alert(response.d);
+                                    }
+                                });
+                            });
+
+
+                            var dataTable;
+                            function OnSuccess(response) {
+
+
+                                dataTable = $("#tblCustomers").DataTable(
+                                    {
+                                        stateSave: true,
+                                        "bDestroy": true,
+                                        bLengthChange: true,
+                                        lengthMenu: [[5, 10, -1], [5, 10, "All"]],
+                                        bFilter: true,
+                                        bSort: true,
+                                        bPaginate: true,
+                                        data: response,
+                                        dom: 'Qlfrtip',
+                                        searchBuilder: {
+                                            columns: [4, 5]
+                                        },
+
+                                        columns: [{ 'data': 'id' },
+                                        { 'data': 'student_id' },
+                                        { 'data': 'first_name' },
+                                        { 'data': 'last_name' },
+                                        { 'data': 'student_class' },
+                                        { 'data': 'subject' },
+                                        { 'data': 'marks' },
+                                        {
+                                            data: null,
+                                            render: function (data, type, row) {
+                                                return "<input type='button' id='btnDelete' value='Delete' data-id='" + data.id + "' />";
+                                            }
+                                        },
+                                        {
+                                            data: null,
+                                            render: function (data, type, row) {
+                                                return "<input type='button' id='btnupdate' value='Edit' data-student_id='" + data.student_id + "' data-subject='" + data.subject + "' />";
+                                            }
+                                        }
+                                        ]
+                                    });
+                            };
+
+
+                        }
+                    });
+
+                }
+            });
+
+        $('#tblCustomers tbody').on('click', '[id*=btnupdate]', function () {
+                if (confirm('Are you sure update this record?')) {
+                    var customer = {};
+                    customer.CustomerId = $(this).attr('data-student_id');
+                    customer.subject = $(this).attr('data-subject');
+                    $.ajax({
+                        type: "POST",
+                        contentType: "application/json; charset=utf-8",
+                        url: '@Url.Action("EditData", "Marks")',
+                        data: '{"id": "' + customer.CustomerId + '"  ,"subject": "' + customer.subject + '" }' ,
+                        dataType: "json",
+                        success: function (data) {
+
+                            $('#marks').val(data[0].marks);
+                            $('#subject_drop').val(data[0].subject);
+                            $('#student_class').val(data[0].student_class);
+                            $('#student_id').val(data[0].student_id);
+                            $('#var1').val(data[0].student_class);
+                            $('#id').val(data[0].id);
+                            $('#btnsubmit').val('Update');
+                            $("#var1").attr("disabled", "disabled");
+                            $('#var2').html('');
+                            var options = '';
+                            options += '<option value="25">' + data[0].student_name + '</option>';
+                            $('#var2').append(options);
+                            $("#var2").attr("disabled", "disabled");
+
+
+
+                        }
+                    });
+
+                }
+            });
+
+    </script>
+
+
+    <script type="text/javascript">
+        $(function () {
+
+            $("#var1").change(function () {
+                var name = $("#var1 :selected").text();
+                var url = 'Marks/Team';
+                var data1 = { "name": name };
+                $.post(url, data1, function (data) {
+                    var items = [];
+                    items.push("<option value=" + 0 + ">" + "Select Name" + "</option>");
+                    for (var i = 0; i < data.length; i++) {
+                        items.push("<option value=" + data[i].Value + ">" + data[i].Text + "</option>");
+                    }
+                    $("#var2").html(items.join(' '));
+
+
+                })
+            });
+
+
+
+        });
+
+
+    </script>
+
+</body>
+</html>
